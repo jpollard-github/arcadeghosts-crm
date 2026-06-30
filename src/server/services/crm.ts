@@ -1,8 +1,20 @@
 import { desc, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { databaseConfigured, db } from "@/db";
 import { companies, contacts, followUps, leads } from "@/db/schema";
 
 export async function getDashboardData() {
+  if (!databaseConfigured || !db) {
+    return {
+      databaseReady: false,
+      companyCount: 0,
+      contactCount: 0,
+      leadCount: 0,
+      followUpCount: 0,
+      recentCompanies: [],
+      recentLeads: [],
+    };
+  }
+
   const [companyCountRow] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(companies);
@@ -31,6 +43,7 @@ export async function getDashboardData() {
   });
 
   return {
+    databaseReady: true,
     companyCount: companyCountRow?.count ?? 0,
     contactCount: contactCountRow?.count ?? 0,
     leadCount: leadCountRow?.count ?? 0,
@@ -41,6 +54,13 @@ export async function getDashboardData() {
 }
 
 export async function getCompaniesPageData() {
+  if (!databaseConfigured || !db) {
+    return {
+      databaseReady: false,
+      companyList: [],
+    };
+  }
+
   const companyList = await db.query.companies.findMany({
     orderBy: [desc(companies.createdAt)],
     with: {
@@ -49,10 +69,18 @@ export async function getCompaniesPageData() {
     },
   });
 
-  return { companyList };
+  return { databaseReady: true, companyList };
 }
 
 export async function getContactsPageData() {
+  if (!databaseConfigured || !db) {
+    return {
+      databaseReady: false,
+      companyOptions: [],
+      contactList: [],
+    };
+  }
+
   const [companyOptions, contactList] = await Promise.all([
     db.query.companies.findMany({
       orderBy: [companies.name],
@@ -65,10 +93,19 @@ export async function getContactsPageData() {
     }),
   ]);
 
-  return { companyOptions, contactList };
+  return { databaseReady: true, companyOptions, contactList };
 }
 
 export async function getLeadsPageData() {
+  if (!databaseConfigured || !db) {
+    return {
+      databaseReady: false,
+      companyOptions: [],
+      contactOptions: [],
+      leadList: [],
+    };
+  }
+
   const [companyOptions, contactOptions, leadList] = await Promise.all([
     db.query.companies.findMany({
       orderBy: [companies.name],
@@ -88,5 +125,5 @@ export async function getLeadsPageData() {
     }),
   ]);
 
-  return { companyOptions, contactOptions, leadList };
+  return { databaseReady: true, companyOptions, contactOptions, leadList };
 }

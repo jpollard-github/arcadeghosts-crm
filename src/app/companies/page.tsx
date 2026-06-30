@@ -16,7 +16,7 @@ import { getCompaniesPageData } from "@/server/services/crm";
 export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
-  const { companyList } = await getCompaniesPageData();
+  const { companyList, databaseReady } = await getCompaniesPageData();
 
   return (
     <>
@@ -28,7 +28,12 @@ export default async function CompaniesPage() {
       <TwoColumn>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Company list</h3>
-          {companyList.length === 0 ? (
+          {!databaseReady ? (
+            <EmptyState
+              title="Database not configured"
+              body="Set DATABASE_URL in Vercel, or connect a Vercel Postgres or Neon integration that provides POSTGRES_URL, before using companies in the live CRM."
+            />
+          ) : companyList.length === 0 ? (
             <EmptyState
               title="No companies yet"
               body="Add the first company record so leads, contacts, and proposals have a real anchor in the CRM."
@@ -51,34 +56,41 @@ export default async function CompaniesPage() {
         </Surface>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Add company</h3>
-          <form action={createCompany} className="crm-form">
-            <FormField label="Name">
-              <FormInput name="name" required />
-            </FormField>
-            <FormField label="Website">
-              <FormInput name="website" type="url" placeholder="https://example.com" />
-            </FormField>
-            <FormField label="Industry">
-              <FormInput name="industry" />
-            </FormField>
-            <FormField label="Business type">
-              <FormInput name="businessType" />
-            </FormField>
-            <FormRow>
-              <FormField label="City">
-                <FormInput name="city" />
+          {!databaseReady ? (
+            <EmptyState
+              title="Database setup needed"
+              body="This form will unlock once the deployment has a valid DATABASE_URL or Vercel Postgres URL."
+            />
+          ) : (
+            <form action={createCompany} className="crm-form">
+              <FormField label="Name">
+                <FormInput name="name" required />
               </FormField>
-              <FormField label="State">
-                <FormInput name="state" />
+              <FormField label="Website">
+                <FormInput name="website" type="url" placeholder="https://example.com" />
               </FormField>
-            </FormRow>
-            <FormField label="Notes">
-              <FormTextarea name="notes" />
-            </FormField>
-            <StackActions>
-              <SubmitButton label="Create company" />
-            </StackActions>
-          </form>
+              <FormField label="Industry">
+                <FormInput name="industry" />
+              </FormField>
+              <FormField label="Business type">
+                <FormInput name="businessType" />
+              </FormField>
+              <FormRow>
+                <FormField label="City">
+                  <FormInput name="city" />
+                </FormField>
+                <FormField label="State">
+                  <FormInput name="state" />
+                </FormField>
+              </FormRow>
+              <FormField label="Notes">
+                <FormTextarea name="notes" />
+              </FormField>
+              <StackActions>
+                <SubmitButton label="Create company" />
+              </StackActions>
+            </form>
+          )}
         </Surface>
       </TwoColumn>
     </>

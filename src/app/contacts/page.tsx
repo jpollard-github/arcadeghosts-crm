@@ -16,7 +16,7 @@ import { getContactsPageData } from "@/server/services/crm";
 export const dynamic = "force-dynamic";
 
 export default async function ContactsPage() {
-  const { companyOptions, contactList } = await getContactsPageData();
+  const { companyOptions, contactList, databaseReady } = await getContactsPageData();
 
   return (
     <>
@@ -28,7 +28,12 @@ export default async function ContactsPage() {
       <TwoColumn>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Contact list</h3>
-          {contactList.length === 0 ? (
+          {!databaseReady ? (
+            <EmptyState
+              title="Database not configured"
+              body="Set DATABASE_URL in Vercel, or connect a Vercel Postgres or Neon integration that provides POSTGRES_URL, before using contacts in the live CRM."
+            />
+          ) : contactList.length === 0 ? (
             <EmptyState
               title="No contacts yet"
               body="Create contacts after you have at least one company record. This keeps people linked to the right business from the start."
@@ -52,7 +57,12 @@ export default async function ContactsPage() {
         </Surface>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Add contact</h3>
-          {companyOptions.length === 0 ? (
+          {!databaseReady ? (
+            <EmptyState
+              title="Database setup needed"
+              body="This form will unlock once the deployment has a valid DATABASE_URL or Vercel Postgres URL."
+            />
+          ) : companyOptions.length === 0 ? (
             <EmptyState
               title="Add a company first"
               body="Contacts belong to a company, so create the company record before adding people."

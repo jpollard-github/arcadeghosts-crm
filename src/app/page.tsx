@@ -32,6 +32,14 @@ export default async function DashboardPage() {
           body="Follow-ups stay explicit in the data model so the CRM can eventually drive a true next-action queue."
         />
       </SectionGrid>
+      {!dashboard.databaseReady && (
+        <section className="crm-card-grid">
+          <SectionCard
+            title="Database not configured"
+            body="Set DATABASE_URL in Vercel, or connect a Vercel Postgres or Neon integration that provides POSTGRES_URL, before using live CRM records."
+          />
+        </section>
+      )}
       <section
         className="crm-card-grid"
       >

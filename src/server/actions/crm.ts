@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { db } from "@/db";
+import { databaseConfigured, db } from "@/db";
 import { companies, contacts, leads } from "@/db/schema";
 
 const companySchema = z.object({
@@ -51,7 +51,18 @@ function cleanOptional(value: FormDataEntryValue | null) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function requireDb() {
+  if (!databaseConfigured || !db) {
+    throw new Error(
+      "DATABASE_URL is not configured. Set DATABASE_URL in Vercel, or use a Vercel Postgres/Neon integration that provides POSTGRES_URL.",
+    );
+  }
+
+  return db;
+}
+
 export async function createCompany(formData: FormData) {
+  const dbClient = requireDb();
   const parsed = companySchema.parse({
     name: formData.get("name"),
     website: cleanOptional(formData.get("website")),
@@ -62,7 +73,7 @@ export async function createCompany(formData: FormData) {
     notes: cleanOptional(formData.get("notes")),
   });
 
-  await db.insert(companies).values(parsed);
+  await dbClient.insert(companies).values(parsed);
   revalidatePath("/");
   revalidatePath("/companies");
   revalidatePath("/contacts");
@@ -70,6 +81,7 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function createContact(formData: FormData) {
+  const dbClient = requireDb();
   const parsed = contactSchema.parse({
     companyId: formData.get("companyId"),
     fullName: formData.get("fullName"),
@@ -85,7 +97,7 @@ export async function createContact(formData: FormData) {
   const [firstName, ...rest] = parsed.fullName.trim().split(/\s+/);
   const lastName = rest.length > 0 ? rest.join(" ") : undefined;
 
-  await db.insert(contacts).values({
+  await dbClient.insert(contacts).values({
     companyId: parsed.companyId,
     firstName,
     lastName,
@@ -105,6 +117,7 @@ export async function createContact(formData: FormData) {
 }
 
 export async function createLead(formData: FormData) {
+  const dbClient = requireDb();
   const parsed = leadSchema.parse({
     companyId: formData.get("companyId"),
     contactId: cleanOptional(formData.get("contactId")) ?? "",
@@ -120,7 +133,7 @@ export async function createLead(formData: FormData) {
     doNotContact: formData.get("doNotContact") === "on",
   });
 
-  await db.insert(leads).values({
+  await dbClient.insert(leads).values({
     companyId: parsed.companyId,
     contactId: parsed.contactId || undefined,
     source: parsed.source,

@@ -33,7 +33,7 @@ const leadStatusOptions = [
 ] as const;
 
 export default async function LeadsPage() {
-  const { companyOptions, contactOptions, leadList } = await getLeadsPageData();
+  const { companyOptions, contactOptions, leadList, databaseReady } = await getLeadsPageData();
 
   return (
     <>
@@ -45,7 +45,12 @@ export default async function LeadsPage() {
       <TwoColumn>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Lead list</h3>
-          {leadList.length === 0 ? (
+          {!databaseReady ? (
+            <EmptyState
+              title="Database not configured"
+              body="Set DATABASE_URL in Vercel, or connect a Vercel Postgres or Neon integration that provides POSTGRES_URL, before using leads in the live CRM."
+            />
+          ) : leadList.length === 0 ? (
             <EmptyState
               title="No leads yet"
               body="Once a company exists, create a lead record for research, outreach, and follow-up tracking."
@@ -69,7 +74,12 @@ export default async function LeadsPage() {
         </Surface>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Add lead</h3>
-          {companyOptions.length === 0 ? (
+          {!databaseReady ? (
+            <EmptyState
+              title="Database setup needed"
+              body="This form will unlock once the deployment has a valid DATABASE_URL or Vercel Postgres URL."
+            />
+          ) : companyOptions.length === 0 ? (
             <EmptyState
               title="Add a company first"
               body="Leads belong to a company record, so create the company before building lead workflow around it."
