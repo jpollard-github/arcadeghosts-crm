@@ -74,6 +74,7 @@ Generated packets are written to `review-packets/`, which is gitignored.
 - [`docs/data-model.md`](docs/data-model.md) entity and lifecycle design notes
 - [`docs/integrations.md`](docs/integrations.md) integration scope, env vars, and security notes
 - [`docs/example-leads.md`](docs/example-leads.md) fake lead examples for demos and development
+- [`docs/review-packets.md`](docs/review-packets.md) review packet workflow and usage notes
 
 ## Current Status
 

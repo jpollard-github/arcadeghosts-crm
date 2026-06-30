@@ -48,6 +48,7 @@ const defaultDocsEntries = [
   "docs/data-model.md",
   "docs/integrations.md",
   "docs/example-leads.md",
+  "docs/review-packets.md",
   "private/README.md",
 ];
 
@@ -141,8 +142,14 @@ type ServerHandle = {
   reason?: string;
 };
 
+type GitSnapshot = {
+  commitHash: string;
+  dirty: boolean;
+};
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  const gitSnapshot = await getGitSnapshot();
   const datedDir = path.join(reviewPacketsRoot, packetDate);
   const packetDir = await ensureUniquePath(path.join(datedDir, `crm-review-${packetTime}`));
   const latestDir = path.join(reviewPacketsRoot, "latest-crm-review");
@@ -183,7 +190,7 @@ async function main() {
   await copyEntries(defaultReportEntries, "reports", packetDir, context.copiedReports, context.missingOptionalPaths);
 
   if (options.includeScript) {
-    await copyEntry("scripts/create-review-packet.ts", path.join(packetDir, "extra", "scripts", "create-review-packet.ts"));
+    await copyEntry("scripts/create-review-packet.ts", path.join(packetDir, "source", "scripts", "create-review-packet.ts"));
     context.copiedExtraFiles.push("scripts/create-review-packet.ts");
   }
 
@@ -214,6 +221,23 @@ async function main() {
     "utf8",
   );
 
+  await writeManifest({
+    packetDir,
+    options,
+    context,
+    checkResults,
+    screenshotResult,
+    gitSnapshot,
+  });
+  await writeAiContext({
+    packetDir,
+    options,
+    context,
+    checkResults,
+    screenshotResult,
+    gitSnapshot,
+  });
+
   await writePacketInfo({
     packetDir,
     latestDir,
@@ -222,6 +246,7 @@ async function main() {
     context,
     checkResults,
     screenshotResult,
+    gitSnapshot,
   });
 
   await writeReview({
@@ -640,6 +665,7 @@ async function generateScreenshots(packetDir: string, options: PacketOptions): P
             mode,
             variant: "full-page",
             baseUrl: serverHandle.baseUrl,
+            packetRelativePath: path.join("screenshots", `${mode}-${slug}.jpg`),
           });
           if (fullPageOk) {
             generated.push(path.relative(packetDir, fullPagePath));
@@ -653,6 +679,7 @@ async function generateScreenshots(packetDir: string, options: PacketOptions): P
               variant: "viewport",
               baseUrl: serverHandle.baseUrl,
               fullPage: false,
+              packetRelativePath: path.join("screenshots", "viewport", `${mode}-${slug}.jpg`),
             });
             if (viewportOk) {
               generated.push(path.relative(packetDir, viewportPath));
@@ -736,6 +763,7 @@ async function takeScreenshot(
     variant: ScreenshotVariant;
     baseUrl: string;
     fullPage?: boolean;
+    packetRelativePath?: string;
   },
 ) {
   try {
@@ -750,7 +778,7 @@ async function takeScreenshot(
       route: details.route,
       mode: details.mode,
       variant: details.variant,
-      filePath: path.relative(repoRoot, absolutePath),
+      filePath: details.packetRelativePath ?? path.basename(absolutePath),
       status: "generated",
       sizeBytes: data.byteLength,
       baseUrl: details.baseUrl,
@@ -761,7 +789,7 @@ async function takeScreenshot(
       route: details.route,
       mode: details.mode,
       variant: details.variant,
-      filePath: path.relative(repoRoot, absolutePath),
+      filePath: details.packetRelativePath ?? path.basename(absolutePath),
       status: "failed",
       sizeBytes: 0,
       baseUrl: details.baseUrl,
@@ -779,8 +807,9 @@ async function writePacketInfo(input: {
   context: PacketContext;
   checkResults: CommandResult[];
   screenshotResult: ScreenshotResult;
+  gitSnapshot: GitSnapshot;
 }) {
-  const { packetDir, latestDir, zipPath, options, context, checkResults, screenshotResult } = input;
+  const { packetDir, latestDir, zipPath, options, context, checkResults, screenshotResult, gitSnapshot } = input;
   const missingOptionalPaths = [...new Set(context.missingOptionalPaths)];
   const copiedExtraFiles = [...new Set(context.copiedExtraFiles)];
   const sensitiveWarnings = [...new Set(context.sensitiveWarnings)];
@@ -789,6 +818,8 @@ async function writePacketInfo(input: {
     `Packet folder: ${packetDir}`,
     `Zip path: ${zipPath}`,
     `Latest folder: ${latestDir}`,
+    `Git commit: ${gitSnapshot.commitHash}`,
+    `Working tree dirty: ${gitSnapshot.dirty ? "yes" : "no"}`,
     "",
     "Options used:",
     `  focus: ${options.focus ?? "(none)"}`,
@@ -835,6 +866,150 @@ async function writePacketInfo(input: {
   ].join("\n");
 
   await fs.writeFile(path.join(packetDir, "PACKET-INFO.txt"), content, "utf8");
+}
+
+async function writeManifest(input: {
+  packetDir: string;
+  options: PacketOptions;
+  context: PacketContext;
+  checkResults: CommandResult[];
+  screenshotResult: ScreenshotResult;
+  gitSnapshot: GitSnapshot;
+}) {
+  const { packetDir, options, context, screenshotResult, gitSnapshot } = input;
+  const docsPresent = [...new Set(context.copiedDocs)].map((entry) => path.basename(entry));
+  const pageLabels = options.routes.map((route) => routeLabel(route));
+  const packetStructure = [
+    "- REVIEW.md",
+    "- PACKET-INFO.txt",
+    "- MANIFEST.md",
+    "- reports/ai-context.md",
+    "- source/",
+    "- docs/",
+    "- schema/",
+    "- config/",
+    "- screenshots/",
+  ];
+
+  if (context.copiedExtraFiles.includes("scripts/create-review-packet.ts")) {
+    packetStructure.push("- source/scripts/create-review-packet.ts");
+  }
+
+  const content = [
+    "# Packet Summary",
+    "",
+    "## Focus",
+    options.note ?? options.focus ?? "Current CRM snapshot",
+    "",
+    "## Git",
+    `- Commit: ${gitSnapshot.commitHash}`,
+    `- Working tree dirty: ${gitSnapshot.dirty ? "yes" : "no"}`,
+    "",
+    "## Tech",
+    "- ✓ Next.js",
+    "- ✓ Drizzle",
+    "- ✓ PostgreSQL",
+    "- ✓ TypeScript",
+    "",
+    "## Docs",
+    ...docsPresent.map((doc) => `- ✓ ${doc}`),
+    "",
+    "## Pages",
+    ...pageLabels.map((page) => `- ✓ ${page}`),
+    "",
+    "## Checks",
+    ...context.checkSummaries.map((summary) => `- ✓ ${summary}`),
+    "",
+    "## Review First",
+    "1. README",
+    "2. architecture.md",
+    "3. crm-todo.md",
+    "4. src/db/schema.ts",
+    "5. screenshots/home",
+    "",
+    "## Screenshot Coverage",
+    screenshotResult.generated.length > 0
+      ? `Generated ${screenshotResult.generated.length} screenshot files.`
+      : screenshotResult.skippedReason ?? "No screenshots were generated.",
+    "",
+    "## Packet Structure",
+    ...packetStructure,
+    "",
+  ].join("\n");
+
+  await fs.writeFile(path.join(packetDir, "MANIFEST.md"), `${content}\n`, "utf8");
+}
+
+async function writeAiContext(input: {
+  packetDir: string;
+  options: PacketOptions;
+  context: PacketContext;
+  checkResults: CommandResult[];
+  screenshotResult: ScreenshotResult;
+  gitSnapshot: GitSnapshot;
+}) {
+  const { packetDir, options, context, screenshotResult, gitSnapshot } = input;
+  const schemaPath = path.join(repoRoot, "src/db/schema.ts");
+  const todoPath = path.join(repoRoot, "docs/crm-todo.md");
+
+  const schemaSource = (await pathExists(schemaPath)) ? await fs.readFile(schemaPath, "utf8") : "";
+  const todoSource = (await pathExists(todoPath)) ? await fs.readFile(todoPath, "utf8") : "";
+
+  const entities = [...schemaSource.matchAll(/export const (\w+) = pgTable\(/g)].map((match) => match[1]);
+  const checkedTodos = (todoSource.match(/^- \[x\] /gm) ?? []).length;
+  const uncheckedTodos = (todoSource.match(/^- \[ \] /gm) ?? []).length;
+  const sensitiveWarnings = [...new Set(context.sensitiveWarnings)];
+
+  const content = [
+    "# AI Context",
+    "",
+    "## Project Summary",
+    "ArcadeGhosts CRM is an internal operating system for leads, outreach, discovery, proposals, projects, and later payments and integrations.",
+    "",
+    "## Database Entities",
+    ...(entities.length > 0 ? entities.map((entity) => `- ${entity}`) : ["- (none detected)"]),
+    "",
+    "## Route Map",
+    ...options.routes.map((route) => `- ${route}`),
+    "",
+    "## Latest Packet Focus",
+    `- ${options.note ?? options.focus ?? "Current CRM snapshot"}`,
+    "",
+    "## Git Snapshot",
+    `- Commit: ${gitSnapshot.commitHash}`,
+    `- Working tree dirty: ${gitSnapshot.dirty ? "yes" : "no"}`,
+    "",
+    "## Validation Status",
+    `- Checks passed: ${context.checkStatus === "pass" ? "yes" : `no (${context.checkStatus})`}`,
+    `- Screenshots passed: ${screenshotResult.skippedReason ? `no (${screenshotResult.skippedReason})` : "yes"}`,
+    "",
+    "## Review Priorities",
+    "- Keep the MVP simple",
+    "- Preserve privacy around lead and contact data",
+    "- Avoid overbuilding integrations before CRUD workflows are real",
+    "- Keep proposal/project handoff aligned with the schema and TODO roadmap",
+    "",
+    "## TODO Progress",
+    `- Completed checkboxes: ${checkedTodos}`,
+    `- Remaining checkboxes: ${uncheckedTodos}`,
+    "",
+    "## Sister Repos",
+    "- ~/repos/personal for the public ArcadeGhosts website and related admin flows",
+    "- ~/repos/brand-kit for brand and collateral generation",
+    "",
+    "## Open Architecture Questions",
+    "- How should imported enriched lead spreadsheets map into durable CRM entities?",
+    "- Which integrations should remain metadata-only in the MVP?",
+    "- When should auth be added beyond a private internal environment?",
+    "",
+    "## Sensitive Include Warnings",
+    ...(sensitiveWarnings.length > 0
+      ? sensitiveWarnings.map((warning) => `- ${warning}`)
+      : ["- (none)"]),
+    "",
+  ].join("\n");
+
+  await fs.writeFile(path.join(packetDir, "reports", "ai-context.md"), `${content}\n`, "utf8");
 }
 
 async function writeReview(input: {
@@ -970,6 +1145,17 @@ function routeToSlug(route: string) {
   return route.replace(/^\//, "").replace(/[\/:?&=#]+/g, "-");
 }
 
+function routeLabel(route: string) {
+  if (route === "/") {
+    return "Dashboard";
+  }
+  return route
+    .replace(/^\//, "")
+    .split("/")
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" / ");
+}
+
 async function findFreePort() {
   return new Promise<number>((resolve, reject) => {
     const server = net.createServer();
@@ -1057,6 +1243,25 @@ function logStep(message: string) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function getGitSnapshot(): Promise<GitSnapshot> {
+  const commitHash = await getGitCommandOutput(["rev-parse", "HEAD"]);
+  const status = await getGitCommandOutput(["status", "--porcelain"]);
+
+  return {
+    commitHash: commitHash || "unknown",
+    dirty: Boolean(status),
+  };
+}
+
+async function getGitCommandOutput(args: string[]) {
+  try {
+    const { stdout } = await execFileAsync("git", args, { cwd: repoRoot });
+    return stdout.trim();
+  } catch {
+    return "";
+  }
 }
 
 main().catch((error) => {

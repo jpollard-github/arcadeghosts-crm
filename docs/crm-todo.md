@@ -8,15 +8,34 @@
 - Sister repo: `~/repos/brand-kit` owns branding and collateral generation workflows.
 - This CRM should reference those repos where useful without duplicating their main function or source content.
 
+## Next Recommended Implementation Phase
+
+Focus next on:
+
+1. auth strategy decision notes
+2. first migration/local database bootstrap
+3. core CRUD for companies, contacts, leads
+4. importing sample/demo leads
+5. lead priority queue
+
 ## Review packet workflow
 
 - [x] Add CRM review packet script
 - [x] Add npm script
 - [x] Add `docs/review-packets.md`
 - [x] Generate first packet
-- [ ] Review schema/docs/screenshots
+- [x] Add packet `MANIFEST.md` orientation file
+- [x] Add `reports/ai-context.md`
+- [x] Review schema/docs/screenshots
 - [x] Use packet before major architecture changes
 - [x] Use packet before outreach/import milestones
+- [x] Fix packet-relative screenshot paths
+- [x] Ensure `docs/review-packets.md` is included in packets
+- [x] Ensure `--include-script` copies the packet script
+- [x] Add richer AI context summary
+- [x] Add packet sensitive-file warnings
+- [ ] Expand `reports/ai-context.md` later with git/change summaries if it becomes useful
+- [ ] Consider adding changed-files-since-last-packet summary
 
 ## Phase 0 — Repo foundation
 
@@ -34,6 +53,8 @@
 - [x] Note sister repo boundaries in project docs
 - [ ] Add auth strategy decision notes
 - [ ] Add first migration and local database bootstrap
+- [ ] Add Drizzle relations helpers if useful
+- [ ] Add indexes for lead status, follow-up date, company/contact lookup, and do-not-contact filtering
 
 ## Phase 1 — Core CRM
 
@@ -48,6 +69,8 @@
 - [ ] Company detail page
 - [ ] Contact detail page
 - [ ] Filters and search
+- [ ] Make the eventual mobile CRM UI denser and more utility-focused once real data exists
+  nav should not dominate the first viewport, headings can be slightly smaller on mobile, and internal-tool pages should prioritize quick scanning
 
 ## Phase 2 — Lead enrichment workflow
 
