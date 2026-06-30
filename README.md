@@ -58,6 +58,7 @@ npm run dev
 - `npm run lint` runs the Next.js ESLint configuration.
 - `npm run typecheck` runs TypeScript without emitting files.
 - `npm run db:generate` generates Drizzle migrations.
+- `npm run db:migrate` applies generated Drizzle migrations.
 - `npm run db:push` pushes schema changes to the configured database.
 
 ## Review Packets
@@ -71,6 +72,8 @@ Generated packets are written to `review-packets/`, which is gitignored.
 - [`docs/leads.md`](docs/leads.md) lead generation operating manual
 - [`docs/crm-todo.md`](docs/crm-todo.md) phased product and process backlog
 - [`docs/architecture.md`](docs/architecture.md) app structure and build boundaries
+- [`docs/auth-strategy.md`](docs/auth-strategy.md) authentication direction and provider recommendation
+- [`docs/database-bootstrap.md`](docs/database-bootstrap.md) database provider and migration/bootstrap workflow
 - [`docs/data-model.md`](docs/data-model.md) entity and lifecycle design notes
 - [`docs/integrations.md`](docs/integrations.md) integration scope, env vars, and security notes
 - [`docs/example-leads.md`](docs/example-leads.md) fake lead examples for demos and development

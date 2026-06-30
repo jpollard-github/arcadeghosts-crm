@@ -12,11 +12,11 @@
 
 Focus next on:
 
-1. auth strategy decision notes
-2. first migration/local database bootstrap
-3. core CRUD for companies, contacts, leads
-4. importing sample/demo leads
-5. lead priority queue
+1. connect a dedicated Neon database and apply the first migration
+2. core CRUD for companies, contacts, leads
+3. importing sample/demo leads
+4. lead priority queue
+5. auth implementation using a managed provider such as Clerk
 
 ## Review packet workflow
 
@@ -51,10 +51,12 @@ Focus next on:
 - [x] Sync local project to git repo
 - [x] Add local private sample leads workbook for reference
 - [x] Note sister repo boundaries in project docs
-- [ ] Add auth strategy decision notes
-- [ ] Add first migration and local database bootstrap
+- [x] Add auth strategy decision notes
+- [x] Add first migration and local database bootstrap notes
+- [x] Generate first Drizzle migration files
 - [ ] Add Drizzle relations helpers if useful
 - [ ] Add indexes for lead status, follow-up date, company/contact lookup, and do-not-contact filtering
+- [ ] Apply the first migration against a dedicated Neon database
 
 ## Phase 1 — Core CRM
 

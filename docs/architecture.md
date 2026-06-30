@@ -101,13 +101,16 @@ Cross-repo rule:
 - Use OAuth carefully for Google access and limit scopes aggressively.
 - Keep AI prompts and outputs reviewable; do not allow unverified generated data to overwrite source truth.
 - Assume this starts as single-user or tightly restricted internal access.
+- Prefer managed authentication such as Clerk over custom cookie auth once the app is actually protected.
 
 ## Deployment Notes
 
 - Primary target is Vercel.
 - Back the app with PostgreSQL.
+- Neon Postgres is the current recommended hosted database for this repo.
 - Keep environment variables in Vercel and local `.env.local`, never in committed files.
 - Add auth before exposing the app beyond a trusted internal environment.
+- Current recommended auth direction is Clerk for the first protected internal release.
 - Health checks and integration status should remain lightweight.
 
 ## What Not To Build Yet

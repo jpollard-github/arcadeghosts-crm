@@ -1,5 +1,20 @@
 # Integrations
 
+## Database
+
+- Purpose
+  Store the CRM source of truth for companies, contacts, leads, interactions, proposals, projects, and related records.
+- Recommended provider
+  Neon Postgres is the current recommended hosted database.
+- Expected environment variables
+  `DATABASE_URL`
+- MVP scope
+  One dedicated CRM database with migration-driven schema changes.
+- Later scope
+  Environment separation, safer migration discipline, and optional local scratch databases.
+- Security concerns
+  Keep CRM data in its own database, protect credentials via env vars, and do not reuse another app's production database.
+
 ## Sister Repo References
 
 - `~/repos/personal`
