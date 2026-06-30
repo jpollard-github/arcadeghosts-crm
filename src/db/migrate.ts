@@ -1,8 +1,11 @@
+import { loadEnvConfig } from "@next/env";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
 async function main() {
+  loadEnvConfig(process.cwd());
+
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {

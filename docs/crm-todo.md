@@ -12,11 +12,21 @@
 
 Focus next on:
 
-1. connect a dedicated Neon database and apply the first migration
-2. core CRUD for companies, contacts, leads
-3. importing sample/demo leads
-4. lead priority queue
-5. auth implementation using a managed provider such as Clerk
+1. interactions
+2. follow-ups and tasks
+3. lead detail page
+4. company detail page
+5. contact detail page
+6. filters and search
+7. import and enrichment workflow
+
+## Mobile Workstream
+
+Use [`docs/MOBILE-GUARDRAILS.md`](docs/MOBILE-GUARDRAILS.md) and [`docs/MOBILE-TODO.md`](docs/MOBILE-TODO.md) as the standing reference for UI work. Mobile is part of definition of done for future CRM pages, forms, lists, navigation, and review packets.
+
+## Theme Direction
+
+Use [`docs/THEME.md`](docs/THEME.md) as the standing reference for CRM styling. The current direction is a polished private CRM with a subtle ArcadeGhosts accent, not a public-site look and not a sepia/antique card system.
 
 ## Review packet workflow
 
@@ -36,6 +46,7 @@ Focus next on:
 - [x] Add packet sensitive-file warnings
 - [ ] Expand `reports/ai-context.md` later with git/change summaries if it becomes useful
 - [ ] Consider adding changed-files-since-last-packet summary
+- [x] Add mobile review section to packet guidance
 
 ## Phase 0 — Repo foundation
 
@@ -54,25 +65,26 @@ Focus next on:
 - [x] Add auth strategy decision notes
 - [x] Add first migration and local database bootstrap notes
 - [x] Generate first Drizzle migration files
-- [ ] Add Drizzle relations helpers if useful
-- [ ] Add indexes for lead status, follow-up date, company/contact lookup, and do-not-contact filtering
-- [ ] Apply the first migration against a dedicated Neon database
+- [x] Add Drizzle relations helpers if useful
+- [x] Add indexes for lead status, follow-up date, company/contact lookup, and do-not-contact filtering
+- [x] Apply the first migration against a dedicated Neon database
 
 ## Phase 1 — Core CRM
 
-- [ ] Companies
-- [ ] Contacts
-- [ ] Leads
+- [x] CRM visual theme course correction
+- [x] Companies
+- [x] Contacts
+- [x] Leads
 - [ ] Interactions
 - [ ] Follow-ups
 - [ ] Tasks
-- [ ] Basic dashboard
+- [x] Basic dashboard
 - [ ] Lead detail page
 - [ ] Company detail page
 - [ ] Contact detail page
 - [ ] Filters and search
 - [ ] Make the eventual mobile CRM UI denser and more utility-focused once real data exists
-  nav should not dominate the first viewport, headings can be slightly smaller on mobile, and internal-tool pages should prioritize quick scanning
+  Nav should not dominate the first viewport, headings can be slightly smaller on mobile, and internal-tool pages should prioritize quick scanning.
 
 ## Phase 2 — Lead enrichment workflow
 

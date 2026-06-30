@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 const navItems = [
@@ -13,66 +16,35 @@ const navItems = [
 ];
 
 export function AppShell({ children }: PropsWithChildren) {
+  const pathname = usePathname();
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: "2rem 0 3rem",
-      }}
-    >
+    <div className="app-shell">
       <main>
-        <header
-          style={{
-            display: "grid",
-            gap: "1rem",
-            padding: "1.5rem",
-            border: "1px solid var(--border)",
-            borderRadius: "24px",
-            background: "var(--surface)",
-            boxShadow: "var(--shadow)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                margin: 0,
-                color: "var(--muted)",
-                fontSize: "0.85rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-              }}
-            >
-              ArcadeGhosts Internal OS
-            </p>
-            <h1 style={{ margin: "0.35rem 0 0", fontSize: "2rem" }}>
-              ArcadeGhosts CRM
-            </h1>
+        <header className="app-shell__header">
+          <div className="app-shell__brand">
+            <div className="app-shell__brand-mark" aria-hidden="true">
+              AG
+            </div>
+            <div>
+              <p className="app-shell__eyebrow">ArcadeGhosts Internal OS</p>
+              <h1 className="app-shell__title">ArcadeGhosts CRM</h1>
+            </div>
           </div>
-          <nav
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.75rem",
-            }}
-          >
+          <nav className="app-shell__nav">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                style={{
-                  padding: "0.65rem 0.9rem",
-                  borderRadius: "999px",
-                  border: "1px solid var(--border)",
-                  background: item.href === "/" ? "var(--accent-soft)" : "var(--surface-strong)",
-                }}
+                className="app-shell__nav-link"
+                data-active={pathname === item.href}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
         </header>
-        <div style={{ paddingTop: "1.5rem" }}>{children}</div>
+        <div className="app-shell__content">{children}</div>
       </main>
     </div>
   );

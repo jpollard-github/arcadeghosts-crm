@@ -4,6 +4,8 @@ Use the CRM review packet script to generate a local bundle for Codex, ChatGPT, 
 
 Generated packets are written to `review-packets/`, which is gitignored.
 
+Mobile review is part of the expected packet workflow for CRM UI changes.
+
 ## Why They Exist
 
 Review packets give you a self-contained snapshot of the CRM at a moment in time:
@@ -29,6 +31,7 @@ They are useful for milestone reviews, architecture check-ins, and handing a cle
 - a root `MANIFEST.md` for quick orientation
 - a lightweight `reports/ai-context.md` summary for AI review
 - a generated `REVIEW.md` guide
+- a dedicated mobile review section when screenshots are part of the packet
 
 ## Commands
 
@@ -55,3 +58,4 @@ npm run crm:review-packet -- --include-script
 - If you intentionally include files from `private/`, or files that look like real lead or contact exports, the packet will warn about that in `PACKET-INFO.txt` and `REVIEW.md`.
 - Do not include real lead spreadsheets, exports, or contact data unless you intentionally want a private local-only packet for internal review.
 - Use review packets before major architecture changes, before import workflow milestones, and when you want a clean outside review of the CRM state.
+- For UI work, prefer packets that include `--mobile` so the mobile review section and screenshots are present.

@@ -1,5 +1,7 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -133,61 +135,85 @@ export const leadSources = pgTable("lead_sources", {
   ...timestamps,
 });
 
-export const companies = pgTable("companies", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  website: text("website"),
-  industry: varchar("industry", { length: 120 }),
-  businessType: varchar("business_type", { length: 120 }),
-  city: varchar("city", { length: 120 }),
-  state: varchar("state", { length: 120 }),
-  status: companyStatusEnum("status").default("prospect").notNull(),
-  fitScore: integer("fit_score"),
-  priorityScore: integer("priority_score"),
-  notes: text("notes"),
-  ...timestamps,
-});
+export const companies = pgTable(
+  "companies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    website: text("website"),
+    industry: varchar("industry", { length: 120 }),
+    businessType: varchar("business_type", { length: 120 }),
+    city: varchar("city", { length: 120 }),
+    state: varchar("state", { length: 120 }),
+    status: companyStatusEnum("status").default("prospect").notNull(),
+    fitScore: integer("fit_score"),
+    priorityScore: integer("priority_score"),
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (table) => ({
+    companyNameIdx: index("companies_name_idx").on(table.name),
+  }),
+);
 
-export const contacts = pgTable("contacts", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  companyId: uuid("company_id")
-    .notNull()
-    .references(() => companies.id, { onDelete: "cascade" }),
-  firstName: varchar("first_name", { length: 120 }),
-  lastName: varchar("last_name", { length: 120 }),
-  fullName: varchar("full_name", { length: 255 }),
-  title: varchar("title", { length: 255 }),
-  email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 50 }),
-  linkedinUrl: text("linkedin_url"),
-  preferredContactMethod: varchar("preferred_contact_method", { length: 80 }),
-  isPrimary: boolean("is_primary").default(false).notNull(),
-  notes: text("notes"),
-  ...timestamps,
-});
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    companyId: uuid("company_id")
+      .notNull()
+      .references(() => companies.id, { onDelete: "cascade" }),
+    firstName: varchar("first_name", { length: 120 }),
+    lastName: varchar("last_name", { length: 120 }),
+    fullName: varchar("full_name", { length: 255 }),
+    title: varchar("title", { length: 255 }),
+    email: varchar("email", { length: 255 }),
+    phone: varchar("phone", { length: 50 }),
+    linkedinUrl: text("linkedin_url"),
+    preferredContactMethod: varchar("preferred_contact_method", { length: 80 }),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (table) => ({
+    contactCompanyIdx: index("contacts_company_id_idx").on(table.companyId),
+    contactFullNameIdx: index("contacts_full_name_idx").on(table.fullName),
+    contactEmailIdx: index("contacts_email_idx").on(table.email),
+  }),
+);
 
-export const leads = pgTable("leads", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  companyId: uuid("company_id")
-    .notNull()
-    .references(() => companies.id, { onDelete: "cascade" }),
-  contactId: uuid("contact_id").references(() => contacts.id, { onDelete: "set null" }),
-  leadSourceId: uuid("lead_source_id").references(() => leadSources.id, { onDelete: "set null" }),
-  source: varchar("source", { length: 255 }),
-  operationalPainSignal: text("operational_pain_signal"),
-  likelyWorkflowProblem: text("likely_workflow_problem"),
-  specificOutreachAngle: text("specific_outreach_angle"),
-  suggestedFirstOffer: text("suggested_first_offer"),
-  estimatedFit: varchar("estimated_fit", { length: 80 }),
-  warmIntroPossible: boolean("warm_intro_possible").default(false).notNull(),
-  status: leadStatusEnum("status").default("new").notNull(),
-  nextAction: text("next_action"),
-  followUpDate: timestamp("follow_up_date", { withTimezone: true }),
-  doNotContact: boolean("do_not_contact").default(false).notNull(),
-  verificationDate: timestamp("verification_date", { withTimezone: true }),
-  sourceUrls: jsonb("source_urls").$type<string[]>().default([]).notNull(),
-  ...timestamps,
-});
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    companyId: uuid("company_id")
+      .notNull()
+      .references(() => companies.id, { onDelete: "cascade" }),
+    contactId: uuid("contact_id").references(() => contacts.id, { onDelete: "set null" }),
+    leadSourceId: uuid("lead_source_id").references(() => leadSources.id, { onDelete: "set null" }),
+    source: varchar("source", { length: 255 }),
+    operationalPainSignal: text("operational_pain_signal"),
+    likelyWorkflowProblem: text("likely_workflow_problem"),
+    specificOutreachAngle: text("specific_outreach_angle"),
+    suggestedFirstOffer: text("suggested_first_offer"),
+    estimatedFit: varchar("estimated_fit", { length: 80 }),
+    warmIntroPossible: boolean("warm_intro_possible").default(false).notNull(),
+    status: leadStatusEnum("status").default("new").notNull(),
+    nextAction: text("next_action"),
+    followUpDate: timestamp("follow_up_date", { withTimezone: true }),
+    doNotContact: boolean("do_not_contact").default(false).notNull(),
+    verificationDate: timestamp("verification_date", { withTimezone: true }),
+    sourceUrls: jsonb("source_urls").$type<string[]>().default([]).notNull(),
+    ...timestamps,
+  },
+  (table) => ({
+    leadStatusIdx: index("leads_status_idx").on(table.status),
+    leadFollowUpDateIdx: index("leads_follow_up_date_idx").on(table.followUpDate),
+    leadDoNotContactIdx: index("leads_do_not_contact_idx").on(table.doNotContact),
+    leadCompanyIdx: index("leads_company_id_idx").on(table.companyId),
+    leadContactIdx: index("leads_contact_id_idx").on(table.contactId),
+  }),
+);
 
 export const interactions = pgTable("interactions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -204,16 +230,23 @@ export const interactions = pgTable("interactions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const followUps = pgTable("follow_ups", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  leadId: uuid("lead_id")
-    .notNull()
-    .references(() => leads.id, { onDelete: "cascade" }),
-  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
-  status: followUpStatusEnum("status").default("pending").notNull(),
-  notes: text("notes"),
-  ...timestamps,
-});
+export const followUps = pgTable(
+  "follow_ups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leadId: uuid("lead_id")
+      .notNull()
+      .references(() => leads.id, { onDelete: "cascade" }),
+    dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+    status: followUpStatusEnum("status").default("pending").notNull(),
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (table) => ({
+    followUpDueDateIdx: index("follow_ups_due_date_idx").on(table.dueDate),
+    followUpStatusIdx: index("follow_ups_status_idx").on(table.status),
+  }),
+);
 
 export const discoveryCalls = pgTable("discovery_calls", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -320,3 +353,147 @@ export const outreachMessages = pgTable("outreach_messages", {
   sentAt: timestamp("sent_at", { withTimezone: true }),
   ...timestamps,
 });
+
+export const companiesRelations = relations(companies, ({ many }) => ({
+  contacts: many(contacts),
+  leads: many(leads),
+  interactions: many(interactions),
+  discoveryCalls: many(discoveryCalls),
+  proposals: many(proposals),
+  projects: many(projects),
+  documents: many(documents),
+  aiResearchNotes: many(aiResearchNotes),
+}));
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [contacts.companyId],
+    references: [companies.id],
+  }),
+  leads: many(leads),
+  interactions: many(interactions),
+}));
+
+export const leadSourcesRelations = relations(leadSources, ({ many }) => ({
+  leads: many(leads),
+}));
+
+export const leadsRelations = relations(leads, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [leads.companyId],
+    references: [companies.id],
+  }),
+  contact: one(contacts, {
+    fields: [leads.contactId],
+    references: [contacts.id],
+  }),
+  leadSource: one(leadSources, {
+    fields: [leads.leadSourceId],
+    references: [leadSources.id],
+  }),
+  interactions: many(interactions),
+  followUps: many(followUps),
+  discoveryCalls: many(discoveryCalls),
+  proposals: many(proposals),
+  tasks: many(tasks),
+  aiResearchNotes: many(aiResearchNotes),
+  outreachMessages: many(outreachMessages),
+}));
+
+export const interactionsRelations = relations(interactions, ({ one }) => ({
+  company: one(companies, {
+    fields: [interactions.companyId],
+    references: [companies.id],
+  }),
+  contact: one(contacts, {
+    fields: [interactions.contactId],
+    references: [contacts.id],
+  }),
+  lead: one(leads, {
+    fields: [interactions.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const followUpsRelations = relations(followUps, ({ one }) => ({
+  lead: one(leads, {
+    fields: [followUps.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const discoveryCallsRelations = relations(discoveryCalls, ({ one }) => ({
+  company: one(companies, {
+    fields: [discoveryCalls.companyId],
+    references: [companies.id],
+  }),
+  lead: one(leads, {
+    fields: [discoveryCalls.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const proposalsRelations = relations(proposals, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [proposals.companyId],
+    references: [companies.id],
+  }),
+  lead: one(leads, {
+    fields: [proposals.leadId],
+    references: [leads.id],
+  }),
+  projects: many(projects),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [projects.companyId],
+    references: [companies.id],
+  }),
+  proposal: one(proposals, {
+    fields: [projects.proposalId],
+    references: [proposals.id],
+  }),
+  tasks: many(tasks),
+  documents: many(documents),
+}));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  project: one(projects, {
+    fields: [tasks.projectId],
+    references: [projects.id],
+  }),
+  lead: one(leads, {
+    fields: [tasks.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  company: one(companies, {
+    fields: [documents.companyId],
+    references: [companies.id],
+  }),
+  project: one(projects, {
+    fields: [documents.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const aiResearchNotesRelations = relations(aiResearchNotes, ({ one }) => ({
+  company: one(companies, {
+    fields: [aiResearchNotes.companyId],
+    references: [companies.id],
+  }),
+  lead: one(leads, {
+    fields: [aiResearchNotes.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const outreachMessagesRelations = relations(outreachMessages, ({ one }) => ({
+  lead: one(leads, {
+    fields: [outreachMessages.leadId],
+    references: [leads.id],
+  }),
+}));

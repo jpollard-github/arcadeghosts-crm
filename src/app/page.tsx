@@ -1,7 +1,12 @@
 import { PageIntro } from "@/components/crm/page-intro";
 import { SectionCard, SectionGrid } from "@/components/crm/section-grid";
+import { getDashboardData } from "@/server/services/crm";
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const dashboard = await getDashboardData();
+
   return (
     <>
       <PageIntro
@@ -11,22 +16,62 @@ export default function DashboardPage() {
       />
       <SectionGrid>
         <SectionCard
-          title="Lead pipeline"
+          title={`${dashboard.leadCount} leads`}
           body="Track researched prospects, readiness to contact, follow-up rhythm, and next action without juggling separate spreadsheets and notes."
         />
         <SectionCard
-          title="Client operations"
-          body="Link companies, contacts, proposals, projects, documents, and task history so each engagement has one working narrative."
+          title={`${dashboard.companyCount} companies`}
+          body="Company records are the long-lived anchor for lead history, proposals, projects, and future payments."
         />
         <SectionCard
-          title="AI assistance"
-          body="Prepare for company research notes, outreach drafting, discovery summaries, and proposal support after core CRUD is stable."
+          title={`${dashboard.contactCount} contacts`}
+          body="Contacts tie specific people to each company so outreach and follow-up stay grounded in real relationships."
         />
         <SectionCard
-          title="Integrations"
-          body="Keep space ready for Google, Stripe, GitHub, and outbound email connections without forcing them into the MVP before they are needed."
+          title={`${dashboard.followUpCount} follow-ups`}
+          body="Follow-ups stay explicit in the data model so the CRM can eventually drive a true next-action queue."
         />
       </SectionGrid>
+      <section
+        className="crm-card-grid"
+      >
+        <SectionCard
+          title="Recent companies"
+          body={
+            dashboard.recentCompanies.length > 0
+              ? "Newest company records in the CRM."
+              : "No companies yet. Add the first business record from the Companies page."
+          }
+        >
+          {dashboard.recentCompanies.length > 0 && (
+            <ul style={{ margin: "0.9rem 0 0", paddingLeft: "1.1rem" }}>
+              {dashboard.recentCompanies.map((company) => (
+                <li key={company.id} style={{ marginBottom: "0.45rem" }}>
+                  {company.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+        <SectionCard
+          title="Recent leads"
+          body={
+            dashboard.recentLeads.length > 0
+              ? "Latest lead records with company context."
+              : "No leads yet. Create one once a company or contact is ready for outreach tracking."
+          }
+        >
+          {dashboard.recentLeads.length > 0 && (
+            <ul style={{ margin: "0.9rem 0 0", paddingLeft: "1.1rem" }}>
+              {dashboard.recentLeads.map((lead) => (
+                <li key={lead.id} style={{ marginBottom: "0.45rem" }}>
+                  {lead.company.name} · {lead.status}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+      </section>
     </>
   );
 }

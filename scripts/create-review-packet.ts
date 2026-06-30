@@ -49,6 +49,10 @@ const defaultDocsEntries = [
   "docs/integrations.md",
   "docs/example-leads.md",
   "docs/review-packets.md",
+  "docs/THEME.md",
+  "docs/MOBILE-GUARDRAILS.md",
+  "docs/MOBILE-TODO.md",
+  "docs/MOBILE-REVIEW-NOTES.md",
   "private/README.md",
 ];
 
@@ -146,6 +150,9 @@ type GitSnapshot = {
   commitHash: string;
   dirty: boolean;
 };
+
+const desktopViewportLabel = "1440x1080";
+const mobileViewportLabel = "390x844 (Playwright iPhone 13)";
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
@@ -879,6 +886,7 @@ async function writeManifest(input: {
   const { packetDir, options, context, screenshotResult, gitSnapshot } = input;
   const docsPresent = [...new Set(context.copiedDocs)].map((entry) => path.basename(entry));
   const pageLabels = options.routes.map((route) => routeLabel(route));
+  const mobileCoverage = buildMobileCoverage(options, screenshotResult);
   const packetStructure = [
     "- REVIEW.md",
     "- PACKET-INFO.txt",
@@ -913,6 +921,11 @@ async function writeManifest(input: {
     "",
     "## Docs",
     ...docsPresent.map((doc) => `- ✓ ${doc}`),
+    "",
+    "## Mobile",
+    `- Mobile screenshots requested: ${options.mobile ? "yes" : "no"}`,
+    `- Viewports used: ${mobileCoverage.viewportSummary}`,
+    `- Horizontal overflow detection: ${mobileCoverage.overflowStatus}`,
     "",
     "## Pages",
     ...pageLabels.map((page) => `- ✓ ${page}`),
@@ -959,6 +972,7 @@ async function writeAiContext(input: {
   const checkedTodos = (todoSource.match(/^- \[x\] /gm) ?? []).length;
   const uncheckedTodos = (todoSource.match(/^- \[ \] /gm) ?? []).length;
   const sensitiveWarnings = [...new Set(context.sensitiveWarnings)];
+  const mobileCoverage = buildMobileCoverage(options, screenshotResult);
 
   const content = [
     "# AI Context",
@@ -983,11 +997,23 @@ async function writeAiContext(input: {
     `- Checks passed: ${context.checkStatus === "pass" ? "yes" : `no (${context.checkStatus})`}`,
     `- Screenshots passed: ${screenshotResult.skippedReason ? `no (${screenshotResult.skippedReason})` : "yes"}`,
     "",
+    "## Mobile Review",
+    `- Mobile screenshots requested: ${options.mobile ? "yes" : "no"}`,
+    `- Routes reviewed: ${options.routes.join(", ")}`,
+    `- Viewports used: ${mobileCoverage.viewportSummary}`,
+    `- Captured screenshots: ${mobileCoverage.capturedSummary}`,
+    `- Horizontal overflow detection: ${mobileCoverage.overflowStatus}`,
+    `- Known mobile issues: ${mobileCoverage.knownIssues}`,
+    "",
     "## Review Priorities",
     "- Keep the MVP simple",
     "- Preserve privacy around lead and contact data",
     "- Avoid overbuilding integrations before CRUD workflows are real",
     "- Keep proposal/project handoff aligned with the schema and TODO roadmap",
+    "",
+    "## Theme Notes",
+    "- CRM theme direction: polished private CRM with a restrained ArcadeGhosts accent",
+    "- Use cool neutral surfaces, compact app chrome, and a quiet teal accent instead of sepia or public-site neon styling",
     "",
     "## TODO Progress",
     `- Completed checkboxes: ${checkedTodos}`,
@@ -1023,6 +1049,7 @@ async function writeReview(input: {
   const missingOptionalPaths = [...new Set(context.missingOptionalPaths)];
   const copiedExtraFiles = [...new Set(context.copiedExtraFiles)];
   const sensitiveWarnings = [...new Set(context.sensitiveWarnings)];
+  const mobileCoverage = buildMobileCoverage(options, screenshotResult);
   const lines = [
     "# ArcadeGhosts CRM Review Packet",
     "",
@@ -1032,7 +1059,7 @@ async function writeReview(input: {
     "Start with the docs and schema, then compare those intentions against the current routes and integration placeholders.",
     "",
     "## Current Focus",
-    options.focus ?? "(none provided)",
+    options.focus ?? options.note ?? "(none provided)",
     "",
     "## Suggested Review Order",
     "1. README and docs",
@@ -1056,6 +1083,7 @@ async function writeReview(input: {
     "- Is the next implementation phase obvious from docs/crm-todo.md?",
     "- Are there security/privacy risks around contact data?",
     "- Is this useful as both an internal operating system and a future client demo?",
+    "- Does the visual theme feel like a credible internal business tool rather than a public or decorative brand site?",
     "",
     "## Codex Review Prompt",
     "```text",
@@ -1071,10 +1099,22 @@ async function writeReview(input: {
     `Status: ${context.checkStatus}`,
     ...context.checkSummaries.map((summary) => `- ${summary}`),
     "",
+    "## Theme Notes",
+    "- Direction: polished private CRM with subtle ArcadeGhosts accent",
+    "- Reviewed against: sepia/antique drift, public-site similarity, and overly decorative chrome",
+    "",
     "## Screenshots",
     ...(screenshotResult.generated.length > 0
       ? screenshotResult.generated.map((filePath) => `- ${filePath}`)
       : [`- ${screenshotResult.skippedReason ?? "No screenshots were generated."}`]),
+    "",
+    "## Mobile Review",
+    `- Pages/routes reviewed: ${options.routes.join(", ")}`,
+    `- Viewport sizes used: ${mobileCoverage.viewportSummary}`,
+    `- Screenshots captured: ${mobileCoverage.capturedSummary}`,
+    `- Known mobile issues: ${mobileCoverage.knownIssues}`,
+    `- Horizontal overflow detected: ${mobileCoverage.overflowStatus}`,
+    `- Immediate next actions: ${mobileCoverage.nextActions}`,
     "",
     "## Missing Optional Files",
     ...(missingOptionalPaths.length > 0
@@ -1132,6 +1172,30 @@ function trimDocsTarget(entry: string) {
     return "private-README.md";
   }
   return entry.replace(/^docs\//, "");
+}
+
+function buildMobileCoverage(options: PacketOptions, screenshotResult: ScreenshotResult) {
+  const mobileShots = screenshotResult.summary.filter((entry) => entry.mode === "mobile" && entry.status === "generated");
+  const desktopShots = screenshotResult.summary.filter((entry) => entry.mode === "desktop" && entry.status === "generated");
+  const viewportSummary = options.mobile
+    ? `${desktopViewportLabel} desktop and ${mobileViewportLabel} mobile`
+    : `${desktopViewportLabel} desktop only`;
+  const capturedSummary =
+    screenshotResult.generated.length > 0
+      ? `${mobileShots.length} mobile and ${desktopShots.length} desktop screenshot variants`
+      : screenshotResult.skippedReason ?? "No screenshots captured";
+
+  return {
+    viewportSummary,
+    capturedSummary,
+    overflowStatus: options.mobile
+      ? "not automatically checked yet; review mobile screenshots manually"
+      : "mobile overflow not checked because --mobile was not used",
+    knownIssues:
+      "no automatic issues flagged in this packet; verify header density, form stacking, and future table strategy manually",
+    nextActions:
+      "review mobile screenshots, log any issues in docs/MOBILE-TODO.md, and keep future CRUD/table work aligned with docs/MOBILE-GUARDRAILS.md",
+  };
 }
 
 function sanitizeIncludePath(value: string) {

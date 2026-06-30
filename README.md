@@ -67,6 +67,13 @@ Use `npm run crm:review-packet` to generate a local review bundle with docs, sou
 
 Generated packets are written to `review-packets/`, which is gitignored.
 
+For UI changes, treat mobile review as part of the normal packet workflow rather than an optional afterthought.
+
+## Health Checks
+
+- `GET /api/health` returns a lightweight app health response.
+- `GET /api/health/db` performs a real database round-trip so you can confirm Neon/Postgres is wired up end to end.
+
 ## Docs Map
 
 - [`docs/leads.md`](docs/leads.md) lead generation operating manual
@@ -78,6 +85,9 @@ Generated packets are written to `review-packets/`, which is gitignored.
 - [`docs/integrations.md`](docs/integrations.md) integration scope, env vars, and security notes
 - [`docs/example-leads.md`](docs/example-leads.md) fake lead examples for demos and development
 - [`docs/review-packets.md`](docs/review-packets.md) review packet workflow and usage notes
+- [`docs/THEME.md`](docs/THEME.md) CRM design direction and theme token usage
+- [`docs/MOBILE-GUARDRAILS.md`](docs/MOBILE-GUARDRAILS.md) repo-wide mobile rules for future UI work
+- [`docs/MOBILE-TODO.md`](docs/MOBILE-TODO.md) durable mobile backlog and review checklist
 
 ## Current Status
 
