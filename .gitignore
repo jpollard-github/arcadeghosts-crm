@@ -16,6 +16,7 @@ out/
 # misc build output
 dist/
 coverage/
+review-packets/
 
 # logs
 *.log

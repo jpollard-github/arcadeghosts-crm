@@ -1,5 +1,14 @@
 # Integrations
 
+## Sister Repo References
+
+- `~/repos/personal`
+  Reference this repo when the CRM needs to point at public funnel pages, Work With Me content, or future website-originated lead context.
+- `~/repos/brand-kit`
+  Reference this repo when the CRM needs proposal covers, discovery docs, letterhead, invoice shells, or other generated client collateral.
+
+The CRM should usually store links, IDs, slugs, or lightweight metadata rather than copying source files or generator logic from either repo.
+
 ## OpenAI
 
 - Purpose
@@ -81,7 +90,7 @@
 ## GitHub
 
 - Purpose
-  Link projects to repos and later surface implementation references.
+  Link projects to repos and later surface implementation references, including sister repos when relevant.
 - Expected environment variables
   `GITHUB_TOKEN`
 - MVP scope

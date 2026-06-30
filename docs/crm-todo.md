@@ -1,5 +1,23 @@
 # ArcadeGhosts CRM TODO
 
+## Current Notes
+
+- Git repo sync is complete for this local project.
+- A sample leads `.xlsx` file now exists in `private/` as a local reference during internal coding and import workflow work.
+- Sister repo: `~/repos/personal` owns the main ArcadeGhosts site and public/admin website workflows.
+- Sister repo: `~/repos/brand-kit` owns branding and collateral generation workflows.
+- This CRM should reference those repos where useful without duplicating their main function or source content.
+
+## Review packet workflow
+
+- [x] Add CRM review packet script
+- [x] Add npm script
+- [x] Add `docs/review-packets.md`
+- [x] Generate first packet
+- [ ] Review schema/docs/screenshots
+- [x] Use packet before major architecture changes
+- [x] Use packet before outreach/import milestones
+
 ## Phase 0 — Repo foundation
 
 - [x] Initialize Next.js app
@@ -11,6 +29,9 @@
 - [x] Add `.gitignore`
 - [x] Add initial Drizzle schema
 - [x] Add placeholder integration clients
+- [x] Sync local project to git repo
+- [x] Add local private sample leads workbook for reference
+- [x] Note sister repo boundaries in project docs
 - [ ] Add auth strategy decision notes
 - [ ] Add first migration and local database bootstrap
 
@@ -81,6 +102,14 @@
 - [ ] GitHub repo link tracking
 - [ ] Drive folder tracking
 - [ ] Discovery call to proposal workflow
+- [ ] Add references to Brand Kit collateral outputs without copying generator logic into this repo
+
+## Phase 6.5 — Cross-repo coordination
+
+- [ ] Define how CRM records link to `~/repos/personal` content or Work With Me funnel pages
+- [ ] Define how proposals and client docs link to `~/repos/brand-kit` generated collateral
+- [ ] Decide whether CRM should store URLs, slugs, repo paths, or lightweight metadata only
+- [ ] Avoid duplicating website content management or brand asset source files here
 
 ## Phase 7 — Payments
 

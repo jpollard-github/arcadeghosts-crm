@@ -15,6 +15,19 @@ ArcadeGhosts CRM is a private internal system for running the full ArcadeGhosts 
 
 The first version should feel like a serious internal tool, not a toy CRM, while still staying small enough to ship and evolve quickly.
 
+## Repo Boundaries
+
+This repo is one part of a small ArcadeGhosts repo ecosystem:
+
+- `~/repos/personal`
+  Owns the public `arcadeghosts.org` website, publishing flows, and small website admin tools.
+- `~/repos/brand-kit`
+  Owns brand configuration and collateral generators for ArcadeGhosts client-facing assets.
+- `~/repos/arcadeghosts-crm`
+  Owns private CRM data, lead operations, outreach workflow, discovery, proposals, projects, and internal operating context.
+
+The CRM can link out to sister-repo outputs, but should not absorb their implementation scope.
+
 ## App Layers
 
 Suggested layers:
@@ -74,6 +87,12 @@ Planned integrations:
 
 MVP rule: keep integrations as adapters until the product proves the workflow.
 
+Cross-repo rule:
+
+- reference website pages, funnel URLs, or content slugs from `personal`
+- reference generated collateral or source-of-truth brand assets from `brand-kit`
+- do not duplicate website CMS features or brand generator source code here
+
 ## Security Considerations
 
 - Do not commit real lead or client exports to source control.
@@ -100,5 +119,7 @@ MVP rule: keep integrations as adapters until the product proves the workflow.
 - full invoicing workflows
 - document storage inside the repo
 - heavy analytics before there is meaningful usage data
+- a duplicate website admin
+- a duplicate brand/collateral generator
 
 The right first version is a small internal tool with a clean schema and clear extension points.

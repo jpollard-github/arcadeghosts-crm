@@ -9,6 +9,15 @@ ArcadeGhosts CRM is the internal operating system for running ArcadeGhosts lead 
 - Dogfood the kind of internal tools ArcadeGhosts builds for small businesses.
 - Keep real prospect and client data out of the codebase by default.
 
+## Sister Repos
+
+- `~/repos/personal`
+  The main `arcadeghosts.org` website for personal publishing, portfolio, and lightweight public/admin site workflows.
+- `~/repos/brand-kit`
+  The brand and collateral generation system for ArcadeGhosts assets such as business cards, proposal covers, letterhead, and related client-facing materials.
+
+This CRM should reference those repos when useful, but should not duplicate their core responsibilities.
+
 ## Tech Stack
 
 - Next.js 16
@@ -51,6 +60,12 @@ npm run dev
 - `npm run db:generate` generates Drizzle migrations.
 - `npm run db:push` pushes schema changes to the configured database.
 
+## Review Packets
+
+Use `npm run crm:review-packet` to generate a local review bundle with docs, source, checks, and screenshots.
+
+Generated packets are written to `review-packets/`, which is gitignored.
+
 ## Docs Map
 
 - [`docs/leads.md`](docs/leads.md) lead generation operating manual
@@ -69,6 +84,12 @@ This repo is the first production-oriented scaffold. It includes:
 - initial Drizzle schema
 - integration client placeholders
 - documentation and fake example data
+
+Boundaries for now:
+
+- website content, public funnels, and site admin stay in `~/repos/personal`
+- branding systems and collateral generators stay in `~/repos/brand-kit`
+- lead, contact, proposal, project, and internal operations workflows live here
 
 ## Data Safety
 
