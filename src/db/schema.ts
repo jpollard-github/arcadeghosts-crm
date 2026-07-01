@@ -107,13 +107,17 @@ export const outreachChannelEnum = pgEnum("outreach_channel", [
 ]);
 
 export const outreachStatusEnum = pgEnum("outreach_status", [
+  "not_started",
+  "draft_ready",
   "draft",
   "scheduled",
   "sent",
+  "follow_up_due",
   "delivered",
   "replied",
   "bounced",
   "cancelled",
+  "do_not_contact",
 ]);
 
 export const integrationProviderEnum = pgEnum("integration_provider", [
@@ -199,6 +203,7 @@ export const leads = pgTable(
     estimatedFit: varchar("estimated_fit", { length: 80 }),
     warmIntroPossible: boolean("warm_intro_possible").default(false).notNull(),
     status: leadStatusEnum("status").default("new").notNull(),
+    outreachStatus: outreachStatusEnum("outreach_status").default("not_started").notNull(),
     nextAction: text("next_action"),
     followUpDate: timestamp("follow_up_date", { withTimezone: true }),
     doNotContact: boolean("do_not_contact").default(false).notNull(),
@@ -208,6 +213,7 @@ export const leads = pgTable(
   },
   (table) => ({
     leadStatusIdx: index("leads_status_idx").on(table.status),
+    leadOutreachStatusIdx: index("leads_outreach_status_idx").on(table.outreachStatus),
     leadFollowUpDateIdx: index("leads_follow_up_date_idx").on(table.followUpDate),
     leadDoNotContactIdx: index("leads_do_not_contact_idx").on(table.doNotContact),
     leadCompanyIdx: index("leads_company_id_idx").on(table.companyId),

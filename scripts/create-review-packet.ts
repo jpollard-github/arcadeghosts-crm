@@ -18,6 +18,8 @@ const defaultRoutes = [
   "/companies",
   "/contacts",
   "/interactions",
+  "/follow-ups",
+  "/tasks",
   "/proposals",
   "/projects",
   "/settings",

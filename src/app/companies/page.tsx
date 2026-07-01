@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageIntro } from "@/components/crm/page-intro";
 import {
   EmptyState,
@@ -5,18 +6,26 @@ import {
   FormInput,
   FormRow,
   FormTextarea,
+  SecondaryButton,
   StackActions,
   SubmitButton,
   Surface,
   TwoColumn,
 } from "@/components/crm/record-ui";
+import { getSingleSearchParam } from "@/lib/query";
 import { createCompany } from "@/server/actions/crm";
 import { getCompaniesPageData } from "@/server/services/crm";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompaniesPage() {
-  const { companyList, databaseReady } = await getCompaniesPageData();
+export default async function CompaniesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const q = getSingleSearchParam(resolvedSearchParams.q) ?? "";
+  const { companyList, databaseReady } = await getCompaniesPageData({ q });
 
   return (
     <>
@@ -25,6 +34,27 @@ export default async function CompaniesPage() {
         title="Store durable context about each business"
         description="Companies are now backed by the real database. This first Phase 1 pass focuses on adding and reviewing account-level records before deeper detail pages exist."
       />
+      <div className="crm-toolbar">
+        <form className="crm-filter-form">
+          <div className="crm-filter-row">
+            <FormField label="Search companies">
+              <FormInput
+                name="q"
+                defaultValue={q}
+                placeholder="Name, industry, city, state, status..."
+              />
+            </FormField>
+          </div>
+          <div className="crm-filter-actions">
+            <SecondaryButton label="Apply filters" />
+            {q && (
+              <Link href="/companies" className="crm-inline-link">
+                Clear filters
+              </Link>
+            )}
+          </div>
+        </form>
+      </div>
       <TwoColumn>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Company list</h3>
@@ -42,7 +72,11 @@ export default async function CompaniesPage() {
             <div className="crm-record-list">
               {companyList.map((company) => (
                 <article key={company.id} className="crm-record-item">
-                  <strong>{company.name}</strong>
+                  <strong>
+                    <Link href={`/companies/${company.id}`} className="crm-list-link">
+                      {company.name}
+                    </Link>
+                  </strong>
                   <p style={{ margin: "0.35rem 0", color: "var(--muted)" }}>
                     {company.industry ?? "Industry TBD"} · {company.status}
                   </p>

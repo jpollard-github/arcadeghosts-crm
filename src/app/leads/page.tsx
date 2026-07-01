@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageIntro } from "@/components/crm/page-intro";
 import {
   EmptyState,
@@ -6,11 +7,13 @@ import {
   FormRow,
   FormSelect,
   FormTextarea,
+  SecondaryButton,
   StackActions,
   SubmitButton,
   Surface,
   TwoColumn,
 } from "@/components/crm/record-ui";
+import { getSingleSearchParam } from "@/lib/query";
 import { createLead } from "@/server/actions/crm";
 import { getLeadsPageData } from "@/server/services/crm";
 
@@ -32,8 +35,41 @@ const leadStatusOptions = [
   "do_not_contact",
 ] as const;
 
-export default async function LeadsPage() {
-  const { companyOptions, contactOptions, leadList, databaseReady } = await getLeadsPageData();
+const outreachStatusOptions = [
+  "not_started",
+  "draft_ready",
+  "draft",
+  "scheduled",
+  "sent",
+  "follow_up_due",
+  "delivered",
+  "replied",
+  "bounced",
+  "cancelled",
+  "do_not_contact",
+] as const;
+
+export default async function LeadsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const q = getSingleSearchParam(resolvedSearchParams.q) ?? "";
+  const status = getSingleSearchParam(resolvedSearchParams.status) ?? "";
+  const outreachStatus = getSingleSearchParam(resolvedSearchParams.outreachStatus) ?? "";
+  const {
+    companyOptions,
+    contactOptions,
+    leadList,
+    priorityQueue,
+    staleLeadReview,
+    databaseReady,
+  } = await getLeadsPageData({
+    q,
+    status,
+    outreachStatus,
+  });
 
   return (
     <>
@@ -42,8 +78,123 @@ export default async function LeadsPage() {
         title="Research, qualify, and move prospects forward"
         description="Leads are now stored in the real database. This first Phase 1 version emphasizes clear intake and queue-ready fields before adding richer lead detail pages."
       />
+      <div className="crm-toolbar">
+        <form className="crm-filter-form">
+          <div className="crm-filter-row">
+            <FormField label="Search leads">
+              <FormInput
+                name="q"
+                defaultValue={q}
+                placeholder="Company, contact, pain signal, next action..."
+              />
+            </FormField>
+            <FormField label="Status">
+              <FormSelect name="status" defaultValue={status}>
+                <option value="">All statuses</option>
+                {leadStatusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </FormSelect>
+            </FormField>
+            <FormField label="Outreach">
+              <FormSelect name="outreachStatus" defaultValue={outreachStatus}>
+                <option value="">All outreach states</option>
+                {outreachStatusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </FormSelect>
+            </FormField>
+          </div>
+          <div className="crm-filter-actions">
+            <SecondaryButton label="Apply filters" />
+            {(q || status || outreachStatus) && (
+              <Link href="/leads" className="crm-inline-link">
+                Clear filters
+              </Link>
+            )}
+          </div>
+        </form>
+      </div>
       <TwoColumn>
         <Surface>
+          <h3 style={{ marginTop: 0 }}>Priority queue</h3>
+          {!databaseReady ? (
+            <EmptyState
+              title="Priority queue needs database setup"
+              body="Once the database is configured, this queue will surface the next best leads to work based on fit, priority, follow-up timing, and do-not-contact state."
+            />
+          ) : priorityQueue.length === 0 ? (
+            <EmptyState
+              title="No queue candidates yet"
+              body="Imported or manually enriched leads will start surfacing here once they have enough context to prioritize."
+            />
+          ) : (
+            <div className="crm-record-list" style={{ marginBottom: "1rem" }}>
+              {priorityQueue.map((lead) => (
+                <article key={lead.id} className="crm-record-item">
+                  <strong>
+                    <Link href={`/leads/${lead.id}`} className="crm-list-link">
+                      {lead.company.name}
+                    </Link>
+                  </strong>
+                  <p style={{ margin: "0.35rem 0", color: "var(--muted)" }}>
+                    {lead.status}
+                    {` · outreach ${lead.outreachStatus}`}
+                    {lead.company.priorityScore ? ` · priority ${lead.company.priorityScore}` : ""}
+                    {lead.company.fitScore ? ` · fit ${lead.company.fitScore}` : ""}
+                  </p>
+                  <p style={{ margin: 0, color: "var(--muted)" }}>
+                    {lead.nextAction ?? "No next action yet"}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+          <h3>Weekly stale review</h3>
+          {!databaseReady ? (
+            <EmptyState
+              title="Weekly review needs database setup"
+              body="Once the database is configured, this review will surface leads that need fresh verification, a next action, or overdue follow-up attention."
+            />
+          ) : staleLeadReview.length === 0 ? (
+            <EmptyState
+              title="No stale leads in this view"
+              body={
+                q || status || outreachStatus
+                  ? "The current filters do not show any neglected leads."
+                  : "Active leads are staying fresh enough to avoid the weekly review list right now."
+              }
+            />
+          ) : (
+            <div className="crm-record-list" style={{ marginBottom: "1rem" }}>
+              {staleLeadReview.map((lead) => (
+                <article key={`stale-${lead.id}`} className="crm-record-item">
+                  <strong>
+                    <Link href={`/leads/${lead.id}`} className="crm-list-link">
+                      {lead.company.name}
+                    </Link>
+                  </strong>
+                  <p style={{ margin: "0.35rem 0", color: "var(--muted)" }}>
+                    {lead.status}
+                    {` · outreach ${lead.outreachStatus}`}
+                    {lead.contact?.fullName ? ` · ${lead.contact.fullName}` : ""}
+                  </p>
+                  <p style={{ margin: "0 0 0.45rem", color: "var(--muted)" }}>
+                    {lead.nextAction ?? "No next action set"}
+                  </p>
+                  <ul style={{ margin: 0, paddingLeft: "1rem", color: "var(--muted)" }}>
+                    {lead.reasons.map((reason) => (
+                      <li key={`${lead.id}-${reason}`}>{reason}</li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          )}
           <h3 style={{ marginTop: 0 }}>Lead list</h3>
           {!databaseReady ? (
             <EmptyState
@@ -59,9 +210,14 @@ export default async function LeadsPage() {
             <div className="crm-record-list">
               {leadList.map((lead) => (
                 <article key={lead.id} className="crm-record-item">
-                  <strong>{lead.company.name}</strong>
+                  <strong>
+                    <Link href={`/leads/${lead.id}`} className="crm-list-link">
+                      {lead.company.name}
+                    </Link>
+                  </strong>
                   <p style={{ margin: "0.35rem 0", color: "var(--muted)" }}>
                     {lead.status}
+                    {` · outreach ${lead.outreachStatus}`}
                     {lead.contact?.fullName ? ` · ${lead.contact.fullName}` : ""}
                   </p>
                   <p style={{ margin: 0, color: "var(--muted)" }}>
@@ -123,6 +279,15 @@ export default async function LeadsPage() {
                 </FormField>
                 <FormField label="Estimated fit">
                   <FormInput name="estimatedFit" placeholder="High / Medium / Low" />
+                </FormField>
+                <FormField label="Outreach status">
+                  <FormSelect name="outreachStatus" defaultValue="not_started">
+                    {outreachStatusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </FormSelect>
                 </FormField>
               </FormRow>
               <FormField label="Operational pain signal">

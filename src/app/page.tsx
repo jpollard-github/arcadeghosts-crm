@@ -31,6 +31,18 @@ export default async function DashboardPage() {
           title={`${dashboard.followUpCount} follow-ups`}
           body="Follow-ups stay explicit in the data model so the CRM can eventually drive a true next-action queue."
         />
+        <SectionCard
+          title={`${dashboard.proposalCount} proposals`}
+          body="Proposals now have a dedicated workflow so scoped offers, sent status, and value are no longer trapped in docs alone."
+        />
+        <SectionCard
+          title={`${dashboard.projectCount} projects`}
+          body="Projects anchor the post-sale handoff so delivery work, repo links, and internal execution context can stay visible."
+        />
+        <SectionCard
+          title={`${dashboard.taskCount} tasks`}
+          body="Tasks keep internal follow-through visible next to leads and projects instead of drifting into side notes or chat."
+        />
       </SectionGrid>
       {!dashboard.databaseReady && (
         <section className="crm-card-grid">
@@ -74,6 +86,42 @@ export default async function DashboardPage() {
               {dashboard.recentLeads.map((lead) => (
                 <li key={lead.id} style={{ marginBottom: "0.45rem" }}>
                   {lead.company.name} · {lead.status}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+        <SectionCard
+          title="Upcoming follow-ups"
+          body={
+            dashboard.upcomingFollowUps.length > 0
+              ? "The next scheduled outreach and follow-through items."
+              : "No follow-ups yet. Add one from the Follow-ups page to build a real next-touch queue."
+          }
+        >
+          {dashboard.upcomingFollowUps.length > 0 && (
+            <ul style={{ margin: "0.9rem 0 0", paddingLeft: "1.1rem" }}>
+              {dashboard.upcomingFollowUps.map((followUp) => (
+                <li key={followUp.id} style={{ marginBottom: "0.45rem" }}>
+                  {followUp.lead.company.name} · {followUp.status}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+        <SectionCard
+          title="Open tasks"
+          body={
+            dashboard.openTasks.length > 0
+              ? "Recently created internal execution work tied to leads or projects."
+              : "No tasks yet. Add one from the Tasks page to keep internal work visible."
+          }
+        >
+          {dashboard.openTasks.length > 0 && (
+            <ul style={{ margin: "0.9rem 0 0", paddingLeft: "1.1rem" }}>
+              {dashboard.openTasks.map((task) => (
+                <li key={task.id} style={{ marginBottom: "0.45rem" }}>
+                  {task.title} · {task.status}
                 </li>
               ))}
             </ul>

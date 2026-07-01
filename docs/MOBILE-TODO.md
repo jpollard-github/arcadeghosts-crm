@@ -73,3 +73,4 @@ The current dashboard, companies, contacts, leads, interactions, proposals, proj
 New concerns from the theme pass:
 - The current shell is noticeably better than before, but real-data screens may still need a denser nav or compact header mode.
 - As soon as filters, detail panels, and table-like record views arrive, we should revisit card density and action-bar behavior on phone screens.
+- Follow-ups, tasks, and the new detail pages should be included in the next explicit mobile screenshot review packet now that they are no longer placeholders.

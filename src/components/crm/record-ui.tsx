@@ -76,6 +76,20 @@ export function SubmitButton({ label }: { label: string }) {
   );
 }
 
+export function SecondaryButton({
+  label,
+  type = "submit",
+}: {
+  label: string;
+  type?: "button" | "submit" | "reset";
+}) {
+  return (
+    <button type={type} className="crm-secondary-button">
+      {label}
+    </button>
+  );
+}
+
 export function EmptyState({
   title,
   body,

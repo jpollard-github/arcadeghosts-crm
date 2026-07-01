@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageIntro } from "@/components/crm/page-intro";
 import {
   EmptyState,
@@ -5,18 +6,26 @@ import {
   FormInput,
   FormSelect,
   FormTextarea,
+  SecondaryButton,
   StackActions,
   SubmitButton,
   Surface,
   TwoColumn,
 } from "@/components/crm/record-ui";
+import { getSingleSearchParam } from "@/lib/query";
 import { createContact } from "@/server/actions/crm";
 import { getContactsPageData } from "@/server/services/crm";
 
 export const dynamic = "force-dynamic";
 
-export default async function ContactsPage() {
-  const { companyOptions, contactList, databaseReady } = await getContactsPageData();
+export default async function ContactsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const q = getSingleSearchParam(resolvedSearchParams.q) ?? "";
+  const { companyOptions, contactList, databaseReady } = await getContactsPageData({ q });
 
   return (
     <>
@@ -25,6 +34,27 @@ export default async function ContactsPage() {
         title="Track real people, not just accounts"
         description="Contacts are now stored in the database and linked to companies. This first pass is focused on fast intake, not a polished directory or detail workflow yet."
       />
+      <div className="crm-toolbar">
+        <form className="crm-filter-form">
+          <div className="crm-filter-row">
+            <FormField label="Search contacts">
+              <FormInput
+                name="q"
+                defaultValue={q}
+                placeholder="Name, company, title, email, phone..."
+              />
+            </FormField>
+          </div>
+          <div className="crm-filter-actions">
+            <SecondaryButton label="Apply filters" />
+            {q && (
+              <Link href="/contacts" className="crm-inline-link">
+                Clear filters
+              </Link>
+            )}
+          </div>
+        </form>
+      </div>
       <TwoColumn>
         <Surface>
           <h3 style={{ marginTop: 0 }}>Contact list</h3>
@@ -42,7 +72,11 @@ export default async function ContactsPage() {
             <div className="crm-record-list">
               {contactList.map((contact) => (
                 <article key={contact.id} className="crm-record-item">
-                  <strong>{contact.fullName ?? [contact.firstName, contact.lastName].filter(Boolean).join(" ")}</strong>
+                  <strong>
+                    <Link href={`/contacts/${contact.id}`} className="crm-list-link">
+                      {contact.fullName ?? [contact.firstName, contact.lastName].filter(Boolean).join(" ")}
+                    </Link>
+                  </strong>
                   <p style={{ margin: "0.35rem 0", color: "var(--muted)" }}>
                     {contact.company.name}
                     {contact.title ? ` · ${contact.title}` : ""}

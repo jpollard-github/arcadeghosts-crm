@@ -74,6 +74,12 @@ For UI changes, treat mobile review as part of the normal packet workflow rather
 - `GET /api/health` returns a lightweight app health response.
 - `GET /api/health/db` performs a real database round-trip so you can confirm Neon/Postgres is wired up end to end.
 
+## Demo Import Workflow
+
+Use `/imports` to preview and load bundled fake enriched lead rows into the CRM. This route is meant to validate the shape of the future enrichment workflow without importing the real workbook from `private/`.
+
+If `private/triad_prospects_enriched_outreach_tracker.xlsx` exists locally, `/imports` also unlocks an explicit local-only workbook import flow that reads the canonical `Master Prospects` sheet from disk. See [`docs/import-workbook-mapping.md`](docs/import-workbook-mapping.md) for the field mapping and sheet rules.
+
 ## Docs Map
 
 - [`docs/leads.md`](docs/leads.md) lead generation operating manual
@@ -84,8 +90,10 @@ For UI changes, treat mobile review as part of the normal packet workflow rather
 - [`docs/data-model.md`](docs/data-model.md) entity and lifecycle design notes
 - [`docs/integrations.md`](docs/integrations.md) integration scope, env vars, and security notes
 - [`docs/example-leads.md`](docs/example-leads.md) fake lead examples for demos and development
+- [`docs/import-workbook-mapping.md`](docs/import-workbook-mapping.md) canonical sheet and field mapping for the private enriched workbook
 - [`docs/review-packets.md`](docs/review-packets.md) review packet workflow and usage notes
 - [`docs/THEME.md`](docs/THEME.md) CRM design direction and theme token usage
+- [`docs/testing-strategy.md`](docs/testing-strategy.md) unit, e2e, and mock-data testing direction
 - [`docs/MOBILE-GUARDRAILS.md`](docs/MOBILE-GUARDRAILS.md) repo-wide mobile rules for future UI work
 - [`docs/MOBILE-TODO.md`](docs/MOBILE-TODO.md) durable mobile backlog and review checklist
 
@@ -95,6 +103,7 @@ This repo is the first production-oriented scaffold. It includes:
 
 - a working Next.js App Router shell
 - starter CRM routes
+- a demo-safe import preview and seed flow
 - initial Drizzle schema
 - integration client placeholders
 - documentation and fake example data

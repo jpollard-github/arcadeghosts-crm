@@ -69,6 +69,20 @@ Recommended lead statuses:
 - `nurture`
 - `do_not_contact`
 
+Recommended lead outreach statuses:
+
+- `not_started`
+- `draft_ready`
+- `draft`
+- `scheduled`
+- `sent`
+- `follow_up_due`
+- `delivered`
+- `replied`
+- `bounced`
+- `cancelled`
+- `do_not_contact`
+
 Recommended proposal statuses:
 
 - `draft`

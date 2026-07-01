@@ -15,6 +15,13 @@
       "when": 1782794371097,
       "tag": "0001_worthless_marvex",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782822569282,
+      "tag": "0002_vengeful_centennial",
+      "breakpoints": true
     }
   ]
 }
